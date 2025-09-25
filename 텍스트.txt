@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Ocean Runner Game</title>
+  <style>
+    body { margin: 0; overflow: hidden; background: #87CEEB; }
+    canvas { display: block; margin: auto; background: #1E90FF; }
+  </style>
+</head>
+<body>
+<canvas id="gameCanvas" width="800" height="400"></canvas>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+let player = { x: 50, y: 300, width: 40, height: 40, dy: 0, jumping: false };
+let gravity = 0.8;
+let obstacles = [];
+let score = 0;
+
+function drawPlayer() {
+  ctx.fillStyle = "yellow";
+  ctx.fillRect(player.x, player.y, player.width, player.height);
+}
+
+function drawObstacles() {
+  ctx.fillStyle = "red";
+  for (let o of obstacles) {
+    ctx.fillRect(o.x, o.y, o.width, o.height);
+  }
+}
+
+function update() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // 점프 적용
+  player.y += player.dy;
+  if (player.y + player.height < canvas.height) {
+    player.dy += gravity;
+  } else {
+    player.y = canvas.height - player.height;
+    player.jumping = false;
+    player.dy = 0;
+  }
+
+  // 장애물 이동
+  for (let o of obstacles) {
+    o.x -= 5;
+    if (o.x + o.width < 0) {
+      obstacles.shift();
+      score++;
+    }
+    // 충돌 체크
+    if (
+      player.x < o.x + o.width &&
+      player.x + player.width > o.x &&
+      player.y < o.y + o.height &&
+      player.height + player.y > o.y
+    ) {
+      alert("Game Over! Score: " + score);
+      document.location.reload();
+    }
+  }
+
+  drawPlayer();
+  drawObstacles();
+
+  // 점수 표시
+  ctx.fillStyle = "white";
+  ctx.font = "20px Arial";
+  ctx.fillText("Score: " + score, 10, 30);
+
+  requestAnimationFrame(update);
+}
+
+// 일정 시간마다 쓰레기(장애물) 추가
+setInterval(() => {
+  let height = 40;
+  obstacles.push({ x: canvas.width, y: canvas.height - height, width: 30, height: height });
+}, 2000);
+
+document.addEventListener("keydown", e => {
+  if (e.code === "Space" && !player.jumping) {
+    player.dy = -15;
+    player.jumping = true;
+  }
+});
+
+update();
+</script>
+</body>
+</html>
